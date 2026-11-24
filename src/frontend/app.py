@@ -14,8 +14,8 @@ from frontend.api_client import check_dependency_health, list_uploaded_files, st
 load_dotenv()
 
 st.set_page_config(
-    page_title="CampusX Doubt Solver",
-    page_icon="🎓",
+    page_title="LectureIQ | Technical Q&A Assistant",
+    page_icon="📚",
     layout="wide",
 )
 
@@ -113,7 +113,7 @@ active_sid = st.session_state.active_session_id
 st.session_state.chats.setdefault(active_sid, [])
 
 
-# ── Top bar: title + health signals ─────────────────────────────────────────────
+# ── Top bar: title + health signals ──────────────────────────────────────────
 def render_dot(status: str | None) -> str:
     if status == "healthy":
         return "🟢"
@@ -142,10 +142,16 @@ def run_health_check() -> None:
 title_col, llm_col, retriever_col, overall_col = st.columns([6, 2, 2, 1])
 
 with title_col:
-    st.title("🎓 CampusX Doubt Solver for Insider's Program")
+    st.title("LectureIQ")
+    st.caption(
+        "RAG-powered technical Q&A assistant grounded in indexed lecture transcripts."
+    )
 
 with llm_col:
-    if st.button(f"{render_dot(st.session_state.health['llm_health'])} Check LLM", use_container_width=True):
+    if st.button(
+        f"{render_dot(st.session_state.health['llm_health'])} LLM Status",
+        use_container_width=True,
+    ):
         run_health_check()
         st.rerun()
     if st.session_state.health["llm_error"]:
@@ -153,7 +159,7 @@ with llm_col:
 
 with retriever_col:
     if st.button(
-        f"{render_dot(st.session_state.health['retriever_health'])} Check Retriever",
+        f"{render_dot(st.session_state.health['retriever_health'])} Retriever Status",
         use_container_width=True,
     ):
         run_health_check()
@@ -166,14 +172,11 @@ with overall_col:
         st.markdown(
             f"<div style='text-align:center; line-height:1.6;'>"
             f"{render_dot(st.session_state.health['overall_health'])}"
-            f"<div style='font-size:0.75rem; color:var(--text-color-light,#808495);'>Overall</div>"
+            f"<div style='font-size:0.75rem; color:var(--text-color-light,#808495);'>System</div>"
             f"</div>",
             unsafe_allow_html=True,
         )
 
-st.markdown(
-    "🔍 **Ask a doubt** and get an instant answer from the CampusX knowledge base."
-)
 st.divider()
 
 
@@ -183,7 +186,7 @@ with st.sidebar:
         st.session_state.active_session_id = create_session()
         st.rerun()
     st.divider()
-    st.markdown("## 💬 Sessions")
+    st.subheader("Sessions")
 
     sorted_sessions = sorted(
         st.session_state.sessions_meta.values(),
@@ -205,14 +208,14 @@ with st.sidebar:
                 st.rerun()
 
     st.divider()
-    st.markdown("## 📄 Loaded Documents")
+    st.subheader("Knowledge Base")
     try:
         files_data = list_uploaded_files()
         with st.expander(f"{files_data['unique_files']} file(s) indexed", expanded=False):
             for filename in files_data["filenames"]:
                 st.markdown(f"- {filename}")
     except requests.exceptions.RequestException:
-        st.caption("Document list not available — is the backend running?")
+        st.caption("Knowledge base unavailable — verify the API service is running.")
 
 
 # ── Chat display ─────────────────────────────────────────────────────────────
@@ -221,7 +224,7 @@ for msg in st.session_state.chats[active_sid]:
         st.markdown(msg["content"])
 
 # ── Chat input ───────────────────────────────────────────────────────────────
-if prompt := st.chat_input("Ask your doubt…"):
+if prompt := st.chat_input("Ask a question about the indexed lectures…"):
     is_first_message = len(st.session_state.chats[active_sid]) == 0
 
     with st.chat_message("user"):
@@ -230,14 +233,14 @@ if prompt := st.chat_input("Ask your doubt…"):
     persist_chat(active_sid)
 
     with st.chat_message("assistant"):
-        status = st.status("Generating response…", expanded=False)
+        status = st.status("Retrieving context and generating response…", expanded=False)
         try:
             response_text = st.write_stream(stream_chat(prompt, active_sid))
             status.update(label="Response generated", state="complete")
         except requests.exceptions.RequestException as e:
-            response_text = f"Could not reach the backend: {e}"
+            response_text = f"Could not reach the backend API: {e}"
             st.error(response_text)
-            status.update(label="Failed to generate response", state="error")
+            status.update(label="Request failed", state="error")
 
     st.session_state.chats[active_sid].append(
         {"role": "assistant", "content": response_text}
