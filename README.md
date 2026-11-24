@@ -96,9 +96,10 @@ To test whether tighter chunks improved retrieval precision on noisy transcripts
 > **Key Finding:** Tightening chunks to 270 tokens raised Contextual Precision (`1.00`) and Faithfulness (`0.99`), but severed multi-sentence spoken explanations—causing sharp drops in Answer Relevancy (-0.17), Simple Explanation (-0.15), and Answer Correctness (-0.08). The statistical regression gate caught the degradation and kept the `300 / 25` Champion in production.
 
 ### Online Production Snapshot (Langfuse)
-- **Indexed Corpus:** `[FILL IN]` transcript files / `[FILL IN]` chunks
-- **Online RAG Triad Averages:** Answer Relevancy `[FILL IN]` | Faithfulness `[FILL IN]` | Contextual Relevancy `[FILL IN]`
-- **Avg. Latency / Cost per Query:** `[FILL IN]` s | `$[FILL IN]`
+- **Indexed Corpus:** 14 transcript files / 1,064 chunks (`rag_demo` collection)
+- **Online RAG Triad (`n=6` evaluated traces):** Answer Relevancy **1.00** (σ=0.00) | Faithfulness **1.00** (σ=0.00) | Contextual Relevancy **0.87** (σ=0.12)
+- **Avg. Observation Metrics:** 5.92 s latency | 129.6 tokens | $0.00016 / observation
+- **Stage Latency Bottleneck (p50):** `retrieve` (13.92 s, incl. contextual compression) → `generation` (5.38 s) → `input_guardrail` (4.68 s) → `retrieval_guardrail` (2.62 s) → `output_guardrail` (1.91 s) → `augmentation` (1 ms)
 
 ---
 
