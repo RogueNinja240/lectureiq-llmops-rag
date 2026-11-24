@@ -1,3 +1,15 @@
+# LectureIQ — Production LLMOps RAG Assistant
+
+**LectureIQ** is an end-to-end, containerized Retrieval-Augmented Generation (RAG) system built for technical Q&A over noisy, unstructured speech-to-text lecture transcripts.
+
+Unlike clean documentation, raw lecture transcripts contain conversational filler, fragmented explanations, and no section headers. LectureIQ pairs **contextual compression retrieval** and **multi-layer guardrails** with **automated CI/CD evaluation gates**, **online reference-free RAG Triad scoring**, and **dual-layer observability** (Langfuse + Prometheus/Grafana).
+
+---
+
+
+## Architecture
+
+```mermaid
 flowchart LR
     U["User"] --> ST["Streamlit Frontend :8501"]
     ST -->|"/chat stream & /health"| API["FastAPI Backend :8000"]
